@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Driver Feedback</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles to enhance the appearance */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .rating-label {
+            transition: all 0.2s;
+        }
+        input[type="radio"]:checked + .rating-label {
+            background-color: #10b981; /* Emerald 500 */
+            color: white;
+            border-color: #059669; /* Emerald 600 */
+            transform: scale(1.02);
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.4);
+        }
+        /* Ensure the form content is visible before submitting */
+        #feedbackFormContent { display: block; }
+        #thankYouMessage { display: none; }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-xl bg-white p-6 md:p-10 rounded-2xl shadow-2xl">
+        
+        <!-- Feedback Form Content -->
+        <div id="feedbackFormContent">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">Rate Your Ride with Sarah M.</h1>
+            <p class="text-center text-sm text-gray-500 mb-8">Your private feedback determines her future recommendations, not her direct income. Be honest.</p>
+
+            <form id="feedbackForm" class="space-y-6">
+
+                <!-- 1. Overall Score (Absolute - Default Neutrality) -->
+                <div class="feedback-section p-5 bg-green-50/50 border border-green-200 rounded-xl">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">1. Overall Quality (Default is 3)</h2>
+                    <p class="text-sm text-gray-600 mb-4">If the service was **acceptable and met basic expectations**, you don't need to change the score (3).</p>
+                    <div class="relative-scale flex justify-between gap-2">
+                        <!-- Score 1-5 with 3 checked by default -->
+                        <div class="flex-1"><input type="radio" id="score1" name="overall_score" value="1" class="hidden"><label for="score1" class="rating-label block p-3 text-sm border border-gray-300 rounded-lg text-center hover:bg-red-50">1 - Poor</label></div>
+                        <div class="flex-1"><input type="radio" id="score2" name="overall_score" value="2" class="hidden"><label for="score2" class="rating-label block p-3 text-sm border border-gray-300 rounded-lg text-center hover:bg-yellow-50">2</label></div>
+                        <div class="flex-1"><input type="radio" id="score3" name="overall_score" value="3" class="hidden" checked><label for="score3" class="rating-label block p-3 text-sm border border-gray-300 rounded-lg text-center bg-gray-100 hover:bg-gray-200">3 - Average</label></div>
+                        <div class="flex-1"><input type="radio" id="score4" name="overall_score" value="4" class="hidden"><label for="score4" class="rating-label block p-3 text-sm border border-gray-300 rounded-lg text-center hover:bg-blue-50">4</label></div>
+                        <div class="flex-1"><input type="radio" id="score5" name="overall_score" value="5" class="hidden"><label for="score5" class="rating-label block p-3 text-sm border border-gray-300 rounded-lg text-center hover:bg-green-50">5 - Excellent</label></div>
+                    </div>
+                </div>
+
+                <!-- 2. Relative Feedback (Direct Comparison) -->
+                <div class="feedback-section p-5 bg-blue-50/50 border border-blue-200 rounded-xl">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">2. Relative Comparison</h2>
+                    <p class="text-sm text-gray-600 mb-4">If you had to choose between your **last driver** and **Sarah M.** for your next critical trip, who would you choose?</p>
+                    <div class="relative-scale flex justify-between gap-2">
+                        <div class="flex-1"><input type="radio" id="rel_last" name="relative_score" value="Last Driver" class="hidden"><label for="rel_last" class="rating-label block p-3 text-sm border border-gray-300 rounded-lg text-center hover:bg-red-50">Last Driver</label></div>
+                        <div class="flex-1"><input type="radio" id="rel_neutral" name="relative_score" value="No Preference" class="hidden" checked><label for="rel_neutral" class="rating-label block p-3 text-sm border border-gray-300 rounded-lg text-center bg-gray-100 hover:bg-gray-200">No Preference</label></div>
+                        <div class="flex-1"><input type="radio" id="rel_sarah" name="relative_score" value="Sarah M." class="hidden"><label for="rel_sarah" class="rating-label block p-3 text-sm border border-gray-300 rounded-lg text-center hover:bg-green-50">Sarah M.</label></div>
+                    </div>
+                </div>
+
+                <!-- 3. Personal Correlators (High-Stakes Trust) -->
+                <div class="feedback-section p-5 bg-red-50/50 border border-red-200 rounded-xl">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">3. Trust Signals (Scenario-Based)</h2>
+                    <p class="text-sm text-gray-600 mb-4 font-medium">Your answer to these personal scenarios is highly valued.</p>
+                    
+                    <!-- Safety Question -->
+                    <label for="trust_safety" class="block font-medium text-gray-700 mb-2">Scenario A (Safety): Based on the ride, would you feel safe enough to fall asleep in the back seat?</label>
+                    <div class="trust-options flex justify-start gap-4 mb-4">
+                        <div><input type="radio" id="safety_yes" name="trust_safety" value="Yes" class="hidden"><label for="safety_yes" class="rating-label block py-2 px-4 text-sm border border-gray-300 rounded-lg text-center hover:bg-green-50">Yes, definitely</label></div>
+                        <div><input type="radio" id="safety_no" name="trust_safety" value="No" class="hidden"><label for="safety_no" class="rating-label block py-2 px-4 text-sm border border-gray-300 rounded-lg text-center hover:bg-red-50">No, I wouldn't</label></div>
+                    </div>
+
+                    <!-- Flexibility Question -->
+                    <label for="trust_flexibility" class="block font-medium text-gray-700 mb-2">Scenario B (Flexibility): If you needed to make a quick, unscheduled 2-minute detour, would you feel comfortable asking Sarah M.?</label>
+                    <div class="trust-options flex justify-start gap-4 mb-4">
+                        <div><input type="radio" id="flex_yes" name="trust_flexibility" value="Yes" class="hidden"><label for="flex_yes" class="rating-label block py-2 px-4 text-sm border border-gray-300 rounded-lg text-center hover:bg-green-50">Yes, comfortable</label></div>
+                        <div><input type="radio" id="flex_no" name="trust_flexibility" value="No" class="hidden"><label for="flex_no" class="rating-label block py-2 px-4 text-sm border border-gray-300 rounded-lg text-center hover:bg-red-50">No, hesitant</label></div>
+                    </div>
+                    
+                    <!-- Reliability/Trust Question -->
+                    <label for="trust_reliability" class="block font-medium text-gray-700 mb-2">Scenario C (Reliability): Would you trust Sarah M. to provide service for an elderly family member travelling alone?</label>
+                    <div class="trust-options flex justify-start gap-4">
+                        <div><input type="radio" id="reliability_yes" name="trust_reliability" value="Yes" class="hidden"><label for="reliability_yes" class="rating-label block py-2 px-4 text-sm border border-gray-300 rounded-lg text-center hover:bg-green-50">Yes, fully trust</label></div>
+                        <div><input type="radio" id="reliability_no" name="trust_reliability" value="No" class="hidden"><label for="reliability_no" class="rating-label block py-2 px-4 text-sm border border-gray-300 rounded-lg text-center hover:bg-red-50">No, I'd worry</label></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition duration-200 shadow-md hover:shadow-lg">
+                    Submit Private Feedback
+                </button>
+            </form>
+        </div>
+        
+        <!-- Thank You Message -->
+        <div id="thankYouMessage" class="flex flex-col items-center justify-center p-10">
+            <svg class="w-20 h-20 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h2 class="text-3xl font-bold text-gray-800 mb-3">Feedback Received!</h2>
+            <p class="text-lg text-gray-600 text-center">Thank you for your honest, private feedback. Your valuable input helps us ensure the integrity of our recommendation system.</p>
+            <p class="text-sm text-gray-400 mt-4">This data is aggregated anonymously and will not be shared directly with Sarah M.</p>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('feedbackForm');
+            const formContent = document.getElementById('feedbackFormContent');
+            const thankYou = document.getElementById('thankYouMessage');
+
+            // --- Ensure a default is selected for all inputs to prevent null values on submit ---
+
+            // Sets default for Relative Comparison (Section 2)
+            if (!document.querySelector('input[name="relative_score"]:checked')) {
+                document.getElementById('rel_neutral').checked = true;
+            }
+
+            // Sets default for Trust Signals (Section 3) - Defaulting to "Yes" for clean initial state
+            if (!document.querySelector('input[name="trust_safety"]:checked')) {
+                document.getElementById('safety_yes').checked = true;
+            }
+            if (!document.querySelector('input[name="trust_flexibility"]:checked')) {
+                document.getElementById('flex_yes').checked = true; // New default
+            }
+            if (!document.querySelector('input[name="trust_reliability"]:checked')) {
+                document.getElementById('reliability_yes').checked = true;
+            }
+            
+            form.addEventListener('submit', function(event) {
+                event.preventDefault(); // Stop page reload
+
+                // Collect data 
+                const data = {
+                    overallScore: document.querySelector('input[name="overall_score"]:checked')?.value || '3',
+                    relativeScore: document.querySelector('input[name="relative_score"]:checked')?.value || 'No Preference',
+                    // New/Updated Trust Signal Collection
+                    trustSafety: document.querySelector('input[name="trust_safety"]:checked')?.value,
+                    trustFlexibility: document.querySelector('input[name="trust_flexibility"]:checked')?.value,
+                    trustReliability: document.querySelector('input[name="trust_reliability"]:checked')?.value
+                };
+
+                // Log data to console (Simulating private submission to backend)
+                console.log("--- Private Feedback Submission ---");
+                console.log("1. Overall Score (Defaulted/Chosen):", data.overallScore);
+                console.log("2. Relative Choice (Driver A vs B):", data.relativeScore);
+                console.log("3A. Trust Signal (Safety Scenario):", data.trustSafety);
+                console.log("3B. Trust Signal (Flexibility Scenario):", data.trustFlexibility);
+                console.log("3C. Trust Signal (Reliability Scenario):", data.trustReliability);
+                console.log("-----------------------------------");
+                
+                // Transition to the thank you message
+                formContent.style.display = 'none';
+                thankYou.style.display = 'flex';
+            });
+        });
+    </script>
+</body>
+</html>
