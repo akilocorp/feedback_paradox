@@ -22,9 +22,34 @@
             transform: scale(1.02);
             box-shadow: 0 4px 6px rgba(16, 185, 129, 0.4);
         }
+        /* Style for the error message */
+        .error-message {
+            color: #ef4444; /* Red 500 */
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
         /* Ensure the form content is visible before submitting */
         #feedbackFormContent { display: block; }
         #thankYouMessage { display: none; }
+
+        .reason-option input[type="radio"] {
+            display: none;
+        }
+        .reason-option label {
+            display: block;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .reason-option input[type="radio"]:checked + label {
+            background-color: #f0fdf4; /* Green 50 */
+            border-color: #10b981; /* Emerald 500 */
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
@@ -37,6 +62,8 @@
             <p class="text-center text-sm text-gray-500 mb-8">Your private feedback determines her future recommendations, not her direct income. Be honest.</p>
 
             <form id="feedbackForm" class="space-y-6">
+                <!-- Hidden input for tracking start time for Response Time Lag -->
+                <input type="hidden" id="formStartTime" value="">
 
                 <!-- 1. Overall Score (Absolute - Default Neutrality) -->
                 <div class="feedback-section p-5 bg-green-50/50 border border-green-200 rounded-xl">
@@ -90,6 +117,36 @@
                     </div>
                 </div>
 
+                <!-- 4. Multiple Choice Reason (Write First Constraint) -->
+                <div class="feedback-section p-5 bg-gray-50 border border-gray-200 rounded-xl">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">4. Primary Area for Improvement</h2>
+                    <label for="reason_for_score" class="block font-medium text-gray-700 mb-2">If your score was **3 or less**, please select the primary area that needed improvement (Mandatory):</label>
+                    <div class="space-y-2">
+                        <div class="reason-option">
+                            <input type="radio" id="reason_punctuality" name="reason_for_score" value="Driver Punctuality/Timing">
+                            <label for="reason_punctuality">Driver Punctuality/Timing (e.g., late arrival, slow driving)</label>
+                        </div>
+                        <div class="reason-option">
+                            <input type="radio" id="reason_cleanliness" name="reason_for_score" value="Vehicle Cleanliness/Maintenance">
+                            <label for="reason_cleanliness">Vehicle Cleanliness/Maintenance</label>
+                        </div>
+                        <div class="reason-option">
+                            <input type="radio" id="reason_attitude" name="reason_for_score" value="Driver Attitude/Professionalism">
+                            <label for="reason_attitude">Driver Attitude/Professionalism (e.g., communication)</label>
+                        </div>
+                         <div class="reason-option">
+                            <input type="radio" id="reason_navigation" name="reason_for_score" value="Navigation/Route Issues">
+                            <label for="reason_navigation">Navigation/Route Issues (e.g., wrong turns, inefficient route)</label>
+                        </div>
+                        <div class="reason-option">
+                            <input type="radio" id="reason_none" name="reason_for_score" value="None of the above (just acceptable)">
+                            <label for="reason_none">None of the above (just acceptable service, no specific issue)</label>
+                        </div>
+                    </div>
+                    <p id="reasonError" class="error-message hidden">🚨 Please select a reason to justify a non-positive score (1, 2, or 3).</p>
+                </div>
+
+
                 <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition duration-200 shadow-md hover:shadow-lg">
                     Submit Private Feedback
                 </button>
@@ -101,18 +158,22 @@
             <svg class="w-20 h-20 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             <h2 class="text-3xl font-bold text-gray-800 mb-3">Feedback Received!</h2>
             <p class="text-lg text-gray-600 text-center">Thank you for your honest, private feedback. Your valuable input helps us ensure the integrity of our recommendation system.</p>
-            <p class="text-sm text-gray-400 mt-4">This data is aggregated anonymously and will not be shared directly with Sarah M.</p>
+            <p class="text-sm text-gray-400 mt-4">**Implicit Data Captured (Backend Signal):** Response Time Lag has been logged along with your explicit feedback.</p>
         </div>
 
     </div>
 
     <script>
+        // Store the time when the script starts executing (page load) for Response Time Lag
+        const startTime = Date.now(); 
+
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('feedbackForm');
             const formContent = document.getElementById('feedbackFormContent');
             const thankYou = document.getElementById('thankYouMessage');
+            const reasonError = document.getElementById('reasonError');
 
-            // --- Ensure a default is selected for all inputs to prevent null values on submit ---
+            // --- Set initial defaults ---
 
             // Sets default for Relative Comparison (Section 2)
             if (!document.querySelector('input[name="relative_score"]:checked')) {
@@ -124,7 +185,7 @@
                 document.getElementById('safety_yes').checked = true;
             }
             if (!document.querySelector('input[name="trust_flexibility"]:checked')) {
-                document.getElementById('flex_yes').checked = true; // New default
+                document.getElementById('flex_yes').checked = true; 
             }
             if (!document.querySelector('input[name="trust_reliability"]:checked')) {
                 document.getElementById('reliability_yes').checked = true;
@@ -133,24 +194,48 @@
             form.addEventListener('submit', function(event) {
                 event.preventDefault(); // Stop page reload
 
-                // Collect data 
+                const overallScore = document.querySelector('input[name="overall_score"]:checked')?.value;
+                const scoreNumber = parseInt(overallScore, 10);
+                const selectedReason = document.querySelector('input[name="reason_for_score"]:checked');
+
+                // 1. --- "Write First" Constraint Logic (using MCQ) ---
+                // If score is 1, 2, or 3, a reason must be selected.
+                if (scoreNumber <= 3 && !selectedReason) {
+                    reasonError.classList.remove('hidden');
+                    // Prevent submission
+                    return; 
+                } else {
+                    reasonError.classList.add('hidden');
+                }
+
+                // 2. --- Response Time Lag Calculation ---
+                const endTime = Date.now();
+                // Calculate time difference in seconds, rounded to 2 decimal places
+                const responseTimeSeconds = ((endTime - startTime) / 1000).toFixed(2); 
+
+                // Collect the rest of the data 
                 const data = {
-                    overallScore: document.querySelector('input[name="overall_score"]:checked')?.value || '3',
+                    overallScore: overallScore || '3',
                     relativeScore: document.querySelector('input[name="relative_score"]:checked')?.value || 'No Preference',
-                    // New/Updated Trust Signal Collection
                     trustSafety: document.querySelector('input[name="trust_safety"]:checked')?.value,
                     trustFlexibility: document.querySelector('input[name="trust_flexibility"]:checked')?.value,
-                    trustReliability: document.querySelector('input[name="trust_reliability"]:checked')?.value
+                    trustReliability: document.querySelector('input[name="trust_reliability"]:checked')?.value,
+                    // Explicit data captured from the new MCQ
+                    primaryReason: selectedReason ? selectedReason.value : '[Score was 4 or 5]', 
+                    // Implicit Data
+                    responseTimeSeconds: responseTimeSeconds 
                 };
 
                 // Log data to console (Simulating private submission to backend)
-                console.log("--- Private Feedback Submission ---");
-                console.log("1. Overall Score (Defaulted/Chosen):", data.overallScore);
-                console.log("2. Relative Choice (Driver A vs B):", data.relativeScore);
-                console.log("3A. Trust Signal (Safety Scenario):", data.trustSafety);
-                console.log("3B. Trust Signal (Flexibility Scenario):", data.trustFlexibility);
-                console.log("3C. Trust Signal (Reliability Scenario):", data.trustReliability);
-                console.log("-----------------------------------");
+                console.log("--- Private Feedback Submission (Implicit & Explicit) ---");
+                console.log("1. Overall Score:", data.overallScore);
+                console.log("2. Relative Choice:", data.relativeScore);
+                console.log("3A. Trust Signal (Safety):", data.trustSafety);
+                console.log("3B. Trust Signal (Flexibility):", data.trustFlexibility);
+                console.log("3C. Trust Signal (Reliability):", data.trustReliability);
+                console.log("4. Primary Reason:", data.primaryReason);
+                console.log("IMPLICIT DATA: Response Time Lag (seconds):", data.responseTimeSeconds);
+                console.log("---------------------------------------------------------");
                 
                 // Transition to the thank you message
                 formContent.style.display = 'none';
